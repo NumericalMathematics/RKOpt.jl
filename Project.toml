@@ -1,0 +1,7 @@
+name = "RKOpt"
+uuid = "ead69dcd-9d07-43d4-88a0-2b30abaca44a"
+authors = ["Hendrik Ranocha <mail@ranocha.de>"]
+version = "0.1.0"
+
+[deps]
+Convex = "f65535da-76fb-5f13-bab9-19810c17039a"
