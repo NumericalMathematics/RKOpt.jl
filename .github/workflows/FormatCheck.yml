@@ -1,0 +1,43 @@
+name: format-check
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths-ignore:
+      - 'paper/**'
+    tags: '*'
+  pull_request:
+
+jobs:
+  check-format:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        version:
+          - '1.10' # current lts
+        os:
+          - ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.version }}
+      - name: Install JuliaFormatter and format
+        # This will use the latest version by default but you can set the version like so:
+        #
+        # julia  -e 'using Pkg; Pkg.add(PackageSpec(name="JuliaFormatter", version="0.13.0"))'
+        run: |
+          julia  -e 'using Pkg; Pkg.add(PackageSpec(name = "JuliaFormatter", version="1.0.60"))'
+          julia  -e 'using JuliaFormatter; format(".", verbose = true)'
+      - name: Format check
+        run: |
+          julia -e '
+          out = Cmd(`git diff --name-only`) |> read |> String
+          out_verbose = Cmd(`git diff`) |> read |> String
+          if out == ""
+              exit(0)
+          else
+              @error "Some files have not been formatted !!!" out out_verbose
+              exit(1)
+          end'

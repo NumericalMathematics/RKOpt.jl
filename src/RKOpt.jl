@@ -3,7 +3,6 @@ module RKOpt
 using Convex: MOI, Variable, evaluate, minimize, solve!
 using ECOS: Optimizer
 
-
 """
     optimize_stability_polynomial
 
@@ -16,15 +15,15 @@ TODO
     initial value problems
     [DOI: 10.2140/camcos.2012.7.247](https://doi.org/10.2140/camcos.2012.7.247)
 """
-function optimize_stability_polynomial(
-        accuracy_order,
-        number_of_stages,
-        spectrum;
-        dt_min = 0.0,
-        dt_max = 2.01 * number_of_stages^2 * maximum(abs, spectrum),
-        tol_bisect = 1.0e-9,
-        tol_feasible = 1.0e-9,
-        maxiters = 1000)
+function optimize_stability_polynomial(accuracy_order,
+                                       number_of_stages,
+                                       spectrum;
+                                       dt_min = 0.0,
+                                       dt_max = 2.01 * number_of_stages^2 *
+                                                maximum(abs, spectrum),
+                                       tol_bisect = 1.0e-9,
+                                       tol_feasible = 1.0e-9,
+                                       maxiters = 1000,)
     # TODO:
     # - Allow other bases
     # - Allow other solvers
@@ -39,8 +38,7 @@ function optimize_stability_polynomial(
     end
 
     # Pre-compute powers of the eigenvalues for efficiency
-    normalized_powers = similar(spectrum,
-                                length(spectrum), number_of_stages)
+    normalized_powers = similar(spectrum, length(spectrum), number_of_stages)
     for j in 1:number_of_stages
         factorial_j = factorial(j)
         for i in eachindex(spectrum)
@@ -95,14 +93,13 @@ function optimize_stability_polynomial(
             # end
             all_polynomial_evaluations = polynomial_evaluations
             for j in (accuracy_order + 1):number_of_stages
-                all_polynomial_evaluations += free_coefficients[j - accuracy_order] * normalized_powers_scaled[:, j]
+                all_polynomial_evaluations += free_coefficients[j - accuracy_order] *
+                                              normalized_powers_scaled[:, j]
             end
             problem = minimize(maximum(abs(all_polynomial_evaluations)))
 
             # Solve the convex optimization problem
-            solve!(problem,
-                   MOI.OptimizerWithAttributes(Optimizer);
-                                               silent = true)
+            solve!(problem, MOI.OptimizerWithAttributes(Optimizer); silent = true)
             max_abs_polynomial_evaluations = problem.optval
         end
 
@@ -142,8 +139,6 @@ function optimize_stability_polynomial(
     return dt, coefficients
 end
 
-
 export optimize_stability_polynomial
-
 
 end # module RKOpt
