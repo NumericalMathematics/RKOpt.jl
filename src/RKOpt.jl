@@ -1,19 +1,54 @@
 module RKOpt
 
 using Convex: MOI, Variable, evaluate, minimize, solve!
-using ECOS: Optimizer
+using ECOS: ECOS
 
 """
-    optimize_stability_polynomial
+    optimize_stability_polynomial(accuracy_order,
+                                  number_of_stages,
+                                  spectrum;
+                                  dt_min = 0.0,
+                                  dt_max = 2.01 * number_of_stages^2 *
+                                           maximum(abs, spectrum),
+                                  tol_bisect = 1.0e-9,
+                                  tol_feasible = 1.0e-9,
+                                  maxiters = 1000,
+                                  optimizer = ECOS.Optimizer,
+                                  silent = true)
 
-TODO
+Optimize the stability polynomial of an explicit Runge-Kutta method
+with a given `accuracy_order` and `number_of_stages` for a given
+`spectrum` of eigenvalues (a vector of real or complex numbers) using
+the algorithm of Ketcheson and Ahmadia (2012).
+
+## Optional keyword arguments
+
+- `dt_min = 0.0`:
+  Minimum time step size for the bisection.
+- `dt_max = 2.01 * number_of_stages^2 * maximum(abs, spectrum)`:
+  Maximum time step size for the bisection.
+- `tol_bisect = 1.0e-9`:
+  Relative tolerance used to terminate the bisection.
+- `tol_feasible = 1.0e-9`:
+  Relative tolerance used to determine the feasibility of the optimization.
+  The problem is considered feasible if the maximal absolute value of the
+  stability polynomial is less than or equal to `1 + tol_feasible` at all
+  eigenvalues in the `spectrum`.
+- `maxiters = 1000`:
+  Maximum number of iterations for the bisection.
+- `optimizer = ECOS.Optimizer`:
+  Convex optimization solver to be used. You can choose a solver supporting
+  SOCP from the list of supported solvers in the
+  [JuMP documentation](https://jump.dev/JuMP.jl/stable/installation/#Supported-solvers).
+- `silent = true`:
+  Whether to suppress the output of the convex optimization solver.
 
 ## References
 
 - Ketcheson and Ahmadia (2012)
-    Optimal stability polynomials for numerical integration of
-    initial value problems
-    [DOI: 10.2140/camcos.2012.7.247](https://doi.org/10.2140/camcos.2012.7.247)
+  Optimal stability polynomials for numerical integration of
+  initial value problems
+  [DOI: 10.2140/camcos.2012.7.247](https://doi.org/10.2140/camcos.2012.7.247)
 """
 function optimize_stability_polynomial(accuracy_order,
                                        number_of_stages,
@@ -23,10 +58,11 @@ function optimize_stability_polynomial(accuracy_order,
                                                 maximum(abs, spectrum),
                                        tol_bisect = 1.0e-9,
                                        tol_feasible = 1.0e-9,
-                                       maxiters = 1000,)
+                                       maxiters = 1000,
+                                       optimizer = ECOS.Optimizer,
+                                       silent = true)
     # TODO:
     # - Allow other bases
-    # - Allow other solvers
     # - Allow function returning the spectrum for given dt
 
     Base.require_one_based_indexing(spectrum)
@@ -99,7 +135,7 @@ function optimize_stability_polynomial(accuracy_order,
             problem = minimize(maximum(abs(all_polynomial_evaluations)))
 
             # Solve the convex optimization problem
-            solve!(problem, MOI.OptimizerWithAttributes(Optimizer); silent = true)
+            solve!(problem, optimizer; silent = silent)
             max_abs_polynomial_evaluations = problem.optval
         end
 
@@ -122,7 +158,7 @@ function optimize_stability_polynomial(accuracy_order,
 
     # Collect all polynomial coefficients after the optimization
     coefficients = ones(number_of_stages + 1)
-    if number_of_stages > accuracy_order + 1
+    if number_of_stages > accuracy_order
         free_coefficients_opt = evaluate(free_coefficients)
         for i in eachindex(free_coefficients_opt)
             coefficients[accuracy_order + 1 + i] = free_coefficients_opt[i]
