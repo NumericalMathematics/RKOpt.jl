@@ -176,7 +176,15 @@ const OPTIMIZERS = [
                                                                                number_of_stages,
                                                                                spectrum)
                     @test isapprox(dt, number_of_stages - 1, rtol = 0.001)
-                    optimal_coefficients = [1, 1, 13 / 25, 4 / 25, 28 / 625, 16 / 3125, 16 / 15_625]
+                    optimal_coefficients = [
+                        1,
+                        1,
+                        13 / 25,
+                        4 / 25,
+                        28 / 625,
+                        16 / 3125,
+                        16 / 15_625
+                    ]
                     @test isapprox(coefficients, optimal_coefficients, rtol = 0.001)
                 end
                 @testset let number_of_stages = 7
@@ -186,7 +194,16 @@ const OPTIMIZERS = [
                                                                                number_of_stages,
                                                                                spectrum)
                     @test isapprox(dt, number_of_stages - 1, rtol = 0.001)
-                    optimal_coefficients = [1, 1, 1 / 2, 19 / 108, 1 / 27, 2 / 243, 1 / 1458, 1 / 8748]
+                    optimal_coefficients = [
+                        1,
+                        1,
+                        1 / 2,
+                        19 / 108,
+                        1 / 27,
+                        2 / 243,
+                        1 / 1458,
+                        1 / 8748
+                    ]
                     @test isapprox(coefficients, optimal_coefficients, rtol = 0.001)
                 end
                 @testset let number_of_stages = 8
@@ -196,7 +213,17 @@ const OPTIMIZERS = [
                                                                                number_of_stages,
                                                                                spectrum)
                     @test isapprox(dt, number_of_stages - 1, rtol = 0.001)
-                    optimal_coefficients = [1, 1, 25 / 49, 8 / 49, 104 / 2401, 16 / 2401, 144 / 117_649, 64 / 823_543, 64 / 5_764_801]
+                    optimal_coefficients = [
+                        1,
+                        1,
+                        25 / 49,
+                        8 / 49,
+                        104 / 2401,
+                        16 / 2401,
+                        144 / 117_649,
+                        64 / 823_543,
+                        64 / 5_764_801
+                    ]
                     @test isapprox(coefficients, optimal_coefficients, rtol = 0.001)
                 end
                 @testset let number_of_stages = 9
@@ -206,7 +233,18 @@ const OPTIMIZERS = [
                                                                                number_of_stages,
                                                                                spectrum)
                     @test isapprox(dt, number_of_stages - 1, rtol = 0.001)
-                    optimal_coefficients = [1, 1, 1 / 2, 11 / 64, 5 / 128, 17 / 2048, 1 / 1024, 5 / 32_768, 1 / 131_072, 1 / 1_048_576]
+                    optimal_coefficients = [
+                        1,
+                        1,
+                        1 / 2,
+                        11 / 64,
+                        5 / 128,
+                        17 / 2048,
+                        1 / 1024,
+                        5 / 32_768,
+                        1 / 131_072,
+                        1 / 1_048_576
+                    ]
                     @test isapprox(coefficients, optimal_coefficients, rtol = 0.001)
                 end
             end
@@ -294,7 +332,8 @@ const OPTIMIZERS = [
                     dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
                                                                                number_of_stages,
                                                                                spectrum)
-                    @test isapprox(dt, sqrt(number_of_stages * (number_of_stages - 2)), rtol = 0.001)
+                    @test isapprox(dt, sqrt(number_of_stages * (number_of_stages - 2)),
+                                   rtol = 0.001)
                     optimal_coefficients = [1, 1, 1 / 2, 1 / 6]
                     @test isapprox(coefficients, optimal_coefficients, rtol = 0.001)
                 end
@@ -304,7 +343,8 @@ const OPTIMIZERS = [
                     dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
                                                                                number_of_stages,
                                                                                spectrum)
-                    @test isapprox(dt, sqrt(number_of_stages * (number_of_stages - 2)), rtol = 0.001)
+                    @test isapprox(dt, sqrt(number_of_stages * (number_of_stages - 2)),
+                                   rtol = 0.001)
                     optimal_coefficients = [1, 1, 1 / 2, 1 / 6, 1 / 24]
                     @test isapprox(coefficients, optimal_coefficients, rtol = 0.001)
                 end
@@ -314,7 +354,9 @@ const OPTIMIZERS = [
                     dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
                                                                                number_of_stages,
                                                                                spectrum)
-                    @test_broken isapprox(dt, sqrt(number_of_stages * (number_of_stages - 2)), rtol = 0.001)
+                    @test_broken isapprox(dt,
+                                          sqrt(number_of_stages * (number_of_stages - 2)),
+                                          rtol = 0.001)
                     optimal_coefficients = [1, 1, 1 / 2, 1 / 6, 1 / 30, 1 / 150]
                     @test isapprox(coefficients, optimal_coefficients, rtol = 0.001)
                 end
@@ -324,7 +366,8 @@ const OPTIMIZERS = [
                     dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
                                                                                number_of_stages,
                                                                                spectrum)
-                    @test isapprox(dt, sqrt(number_of_stages * (number_of_stages - 2)), rtol = 0.001)
+                    @test isapprox(dt, sqrt(number_of_stages * (number_of_stages - 2)),
+                                   rtol = 0.001)
                     optimal_coefficients = [1, 1, 1 / 2, 1 / 6, 1 / 24, 1 / 180, 1 / 1080]
                     @test isapprox(coefficients, optimal_coefficients, rtol = 0.001)
                 end
@@ -334,8 +377,19 @@ const OPTIMIZERS = [
                     dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
                                                                                number_of_stages,
                                                                                spectrum)
-                    @test_broken isapprox(dt, sqrt(number_of_stages * (number_of_stages - 2)), rtol = 0.001)
-                    optimal_coefficients = [1, 1, 1 / 2, 1 / 6, 4 / 105, 4 / 525, 8 / 11_025, 8 / 77_175]
+                    @test_broken isapprox(dt,
+                                          sqrt(number_of_stages * (number_of_stages - 2)),
+                                          rtol = 0.001)
+                    optimal_coefficients = [
+                        1,
+                        1,
+                        1 / 2,
+                        1 / 6,
+                        4 / 105,
+                        4 / 525,
+                        8 / 11_025,
+                        8 / 77_175
+                    ]
                     @test isapprox(coefficients, optimal_coefficients, rtol = 0.001)
                 end
                 @testset let number_of_stages = 8
@@ -344,8 +398,19 @@ const OPTIMIZERS = [
                     dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
                                                                                number_of_stages,
                                                                                spectrum)
-                    @test isapprox(dt, sqrt(number_of_stages * (number_of_stages - 2)), rtol = 0.001)
-                    optimal_coefficients = [1, 1, 1 / 2, 1 / 6, 1 / 24, 1 / 144, 1 / 864, 1 / 12_096, 1 / 96_768]
+                    @test isapprox(dt, sqrt(number_of_stages * (number_of_stages - 2)),
+                                   rtol = 0.001)
+                    optimal_coefficients = [
+                        1,
+                        1,
+                        1 / 2,
+                        1 / 6,
+                        1 / 24,
+                        1 / 144,
+                        1 / 864,
+                        1 / 12_096,
+                        1 / 96_768
+                    ]
                     @test isapprox(coefficients, optimal_coefficients, rtol = 0.001)
                 end
                 @testset let number_of_stages = 9
@@ -354,8 +419,21 @@ const OPTIMIZERS = [
                     dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
                                                                                number_of_stages,
                                                                                spectrum)
-                    @test_broken isapprox(dt, sqrt(number_of_stages * (number_of_stages - 2)), rtol = 0.001)
-                    optimal_coefficients = [1, 1, 1 / 2, 1 / 6, 5 / 126, 1 / 126, 4 / 3969, 4 / 27_783, 2 / 250_047, 2 / 2_250_423]
+                    @test_broken isapprox(dt,
+                                          sqrt(number_of_stages * (number_of_stages - 2)),
+                                          rtol = 0.001)
+                    optimal_coefficients = [
+                        1,
+                        1,
+                        1 / 2,
+                        1 / 6,
+                        5 / 126,
+                        1 / 126,
+                        4 / 3969,
+                        4 / 27_783,
+                        2 / 250_047,
+                        2 / 2_250_423
+                    ]
                     @test isapprox(coefficients, optimal_coefficients, rtol = 0.001)
                 end
             end
