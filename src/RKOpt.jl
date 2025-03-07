@@ -1,7 +1,7 @@
 module RKOpt
 
 using Convex: MOI, Variable, evaluate, minimize, solve!
-using ECOS: Optimizer
+using ECOS: ECOS
 
 """
     optimize_stability_polynomial(accuracy_order,
@@ -12,7 +12,8 @@ using ECOS: Optimizer
                                            maximum(abs, spectrum),
                                   tol_bisect = 1.0e-9,
                                   tol_feasible = 1.0e-9,
-                                  maxiters = 1000)
+                                  maxiters = 1000,
+                                  optimizer = ECOS.Optimizer)
 
 Optimize the stability polynomial of an explicit Runge-Kutta method
 with a given `accuracy_order` and `number_of_stages` for a given
@@ -34,6 +35,10 @@ the algorithm of Ketcheson and Ahmadia (2012).
   eigenvalues in the `spectrum`.
 - `maxiters = 1000`:
   Maximum number of iterations for the bisection.
+- `optimizer = ECOS.Optimizer`:
+  Convex optimization solver to be used. You can choose a solver supporting
+  SOCP from the list of supported solvers in the
+  [JuMP documentation](https://jump.dev/JuMP.jl/stable/installation/#Supported-solvers).
 
 ## References
 
@@ -50,10 +55,10 @@ function optimize_stability_polynomial(accuracy_order,
                                                 maximum(abs, spectrum),
                                        tol_bisect = 1.0e-9,
                                        tol_feasible = 1.0e-9,
-                                       maxiters = 1000,)
+                                       maxiters = 1000,
+                                       optimizer = ECOS.Optimizer)
     # TODO:
     # - Allow other bases
-    # - Allow other solvers
     # - Allow function returning the spectrum for given dt
 
     Base.require_one_based_indexing(spectrum)
@@ -126,7 +131,7 @@ function optimize_stability_polynomial(accuracy_order,
             problem = minimize(maximum(abs(all_polynomial_evaluations)))
 
             # Solve the convex optimization problem
-            solve!(problem, MOI.OptimizerWithAttributes(Optimizer); silent = true)
+            solve!(problem, optimizer; silent = true)
             max_abs_polynomial_evaluations = problem.optval
         end
 

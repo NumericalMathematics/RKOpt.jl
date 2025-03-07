@@ -1,32 +1,77 @@
 using Test
 using RKOpt
 
+using Clarabel: Clarabel
+using ECOS: ECOS
+
+# We do not use
+# - COSMO.Optimizer
+# - ProxSDP.Optimizer
+# - SCS.Optimizer
+# since they were very slow in first tests
+const OPTIMIZERS = [
+    Clarabel.Optimizer,
+    ECOS.Optimizer
+]
+
 @testset "RKOpt" begin
     @testset "optimize_stability_polynomial" begin
         @testset "no free coefficients" begin
-            # real coefficients
-            spectrum = range(-1.0, 0.0, length = 11)
-            for n in 1:10
-                accuracy_order = n
-                number_of_stages = n
-                dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
-                                                                           number_of_stages,
-                                                                           spectrum)
-                for i in 1:n
-                    @test coefficients[i] ≈ 1 / factorial(i - 1)
+            @testset "real coefficients" begin
+                spectrum = range(-1.0, 0.0, length = 11)
+                for n in 1:10
+                    accuracy_order = n
+                    number_of_stages = n
+                    dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
+                                                                               number_of_stages,
+                                                                               spectrum)
+                    for i in 1:n
+                        @test coefficients[i] ≈ 1 / factorial(i - 1)
+                    end
+                end
+
+                # other optimizers
+                @testset for optimizer in OPTIMIZERS
+                    for n in 1:10
+                        accuracy_order = n
+                        number_of_stages = n
+                        dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
+                                                                                   number_of_stages,
+                                                                                   spectrum;
+                                                                                   optimizer = optimizer)
+                        for i in 1:n
+                            @test coefficients[i] ≈ 1 / factorial(i - 1)
+                        end
+                    end
                 end
             end
 
-            # complex coefficients
-            spectrum = im * range(-1.0, 1.0, length = 11)
-            for n in 1:10
-                accuracy_order = n
-                number_of_stages = n
-                dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
-                                                                           number_of_stages,
-                                                                           spectrum)
-                for i in 1:n
-                    @test coefficients[i] ≈ 1 / factorial(i - 1)
+            @testset "complex coefficients" begin
+                spectrum = im * range(-1.0, 1.0, length = 11)
+                for n in 1:10
+                    accuracy_order = n
+                    number_of_stages = n
+                    dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
+                                                                               number_of_stages,
+                                                                               spectrum)
+                    for i in 1:n
+                        @test coefficients[i] ≈ 1 / factorial(i - 1)
+                    end
+                end
+
+                # other optimizers
+                @testset for optimizer in OPTIMIZERS
+                    for n in 1:10
+                        accuracy_order = n
+                        number_of_stages = n
+                        dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
+                                                                                   number_of_stages,
+                                                                                   spectrum;
+                                                                                   optimizer = optimizer)
+                        for i in 1:n
+                            @test coefficients[i] ≈ 1 / factorial(i - 1)
+                        end
+                    end
                 end
             end
         end
@@ -54,6 +99,17 @@ using RKOpt
                                                                                spectrum)
                     @test isapprox(dt, number_of_stages - 1, rtol = 0.001)
                 end
+
+                # other optimizers
+                @testset for optimizer in OPTIMIZERS
+                    for number_of_stages in 2:9
+                        dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
+                                                                                   number_of_stages,
+                                                                                   spectrum;
+                                                                                   optimizer = optimizer)
+                        @test isapprox(dt, number_of_stages - 1, rtol = 0.001)
+                    end
+                end
             end
 
             @testset "order 2, odd number of stages" begin
@@ -64,6 +120,17 @@ using RKOpt
                                                                                number_of_stages,
                                                                                spectrum)
                     @test isapprox(dt, number_of_stages - 1, rtol = 0.001)
+                end
+
+                # other optimizers
+                @testset for optimizer in OPTIMIZERS
+                    for number_of_stages in 3:2:9
+                        dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
+                                                                                   number_of_stages,
+                                                                                   spectrum;
+                                                                                   optimizer = optimizer)
+                        @test isapprox(dt, number_of_stages - 1, rtol = 0.001)
+                    end
                 end
             end
 
@@ -77,6 +144,19 @@ using RKOpt
                     @test isapprox(dt,
                                    sqrt(number_of_stages * (number_of_stages - 2)),
                                    rtol = 0.001)
+                end
+
+                # other optimizers
+                @testset for optimizer in OPTIMIZERS
+                    for number_of_stages in 4:2:10
+                        dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
+                                                                                   number_of_stages,
+                                                                                   spectrum;
+                                                                                   optimizer = optimizer)
+                        @test isapprox(dt,
+                                       sqrt(number_of_stages * (number_of_stages - 2)),
+                                       rtol = 0.001)
+                    end
                 end
             end
         end
@@ -108,6 +188,17 @@ using RKOpt
                                                                                number_of_stages,
                                                                                spectrum)
                     @test isapprox(dt, number_of_stages - 1, rtol = 0.01)
+                end
+
+                # other optimizers
+                @testset for optimizer in OPTIMIZERS
+                    for number_of_stages in 2:9
+                        dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
+                                                                                   number_of_stages,
+                                                                                   spectrum;
+                                                                                   optimizer = optimizer)
+                        @test isapprox(dt, number_of_stages - 1, rtol = 0.01)
+                    end
                 end
             end
         end
