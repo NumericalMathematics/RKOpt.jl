@@ -114,6 +114,22 @@ const OPTIMIZERS = [
                 # Compare with optimal polynomials given by
                 # Kinnmark and Gray (1984)
                 # One step integration methods with maximum stability regions
+                # https://doi.org/10.1016/0378-4754(84)90039-9
+                # Coefficients generated using Mathematica and the code
+                #     OptimalStabilityPolynomialOrder1[K_, z_] :=
+                #         Expand[(-I)^
+                #         K*(I*ChebyshevT[K - 1, I*z/(K - 1)] - (1 + (z/(K - 1))^2)*
+                #         ChebyshevU[K - 2, I*z/(K - 1)])]
+                #
+                #     OptimalStabilityPolynomialOrder1[2, z]
+                #     OptimalStabilityPolynomialOrder1[3, z]
+                #     OptimalStabilityPolynomialOrder1[4, z]
+                #     OptimalStabilityPolynomialOrder1[5, z]
+                #     OptimalStabilityPolynomialOrder1[6, z]
+                #     OptimalStabilityPolynomialOrder1[7, z]
+                #     OptimalStabilityPolynomialOrder1[8, z]
+                #     OptimalStabilityPolynomialOrder1[9, z]
+                # to obtain the monomial coefficients
                 @testset let number_of_stages = 2
                     spectrum = im * range(-1.0, 1.0, length = 100)
                     accuracy_order = 1
@@ -240,6 +256,57 @@ const OPTIMIZERS = [
                                        sqrt(number_of_stages * (number_of_stages - 2)),
                                        rtol = 0.001)
                     end
+                end
+            end
+
+            @testset "order 3" begin
+                # Compare with optimal polynomials given by
+                # Kinnmark and Gray (1984)
+                # One step integration methods with maximum stability regions
+                # https://doi.org/10.1016/0378-4754(84)90039-9
+                # Coefficients generated using Mathematica and the code
+                #     OptimalStabilityPolynomialOrder2[K_, z_] :=
+                #         Expand[Module[{SI = Sqrt[(K - 1)^2 - 1]},
+                #         If[OddQ[K],
+                #         1/(SI^2 + 1) +
+                #             I^(K - 1)*SI^2/(SI^2 + 1)*ChebyshevT[K - 1, I*z/SI] +
+                #             1/(SI^2 + 1)*z +
+                #             1/2*I^(K + 2)*
+                #             SI/(SI^2 + 1)*((K - 2)*ChebyshevT[K, I*z/SI] -
+                #             K*ChebyshevT[K - 2, I*z/SI]),
+                #         I^(K + 1)*Sqrt[SI^2/(SI^2 + 1)]*ChebyshevT[K - 1, I*z/SI] +
+                #             1/2*I^K*Sqrt[
+                #             1/(SI^2 + 1)]*((K - 2)*ChebyshevT[K, I*z/SI] -
+                #             K*ChebyshevT[K - 2, I*z/SI])]
+                #         ]]
+                #
+                #     OptimalStabilityPolynomialOrder2[3, z]
+                #     OptimalStabilityPolynomialOrder2[4, z]
+                #     OptimalStabilityPolynomialOrder2[5, z]
+                #     OptimalStabilityPolynomialOrder2[6, z]
+                #     OptimalStabilityPolynomialOrder2[7, z]
+                #     OptimalStabilityPolynomialOrder2[8, z]
+                #     OptimalStabilityPolynomialOrder2[9, z]
+                # to obtain the monomial coefficients
+                @testset let number_of_stages = 3
+                    spectrum = im * range(-1.0, 1.0, length = 100)
+                    accuracy_order = 3
+                    dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
+                                                                               number_of_stages,
+                                                                               spectrum)
+                    @test isapprox(dt, sqrt(number_of_stages * (number_of_stages - 2)), rtol = 0.001)
+                    optimal_coefficients = [1, 1, 1 / 2, 1 / 6]
+                    @test isapprox(coefficients, optimal_coefficients, rtol = 0.001)
+                end
+                @testset let number_of_stages = 4
+                    spectrum = im * range(-1.0, 1.0, length = 100)
+                    accuracy_order = 3
+                    dt, coefficients = @inferred optimize_stability_polynomial(accuracy_order,
+                                                                               number_of_stages,
+                                                                               spectrum)
+                    @test isapprox(dt, sqrt(number_of_stages * (number_of_stages - 2)), rtol = 0.001)
+                    optimal_coefficients = [1, 1, 1 / 2, 1 / 6, 1 / 24]
+                    @test isapprox(coefficients, optimal_coefficients, rtol = 0.001)
                 end
             end
         end
