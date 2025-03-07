@@ -13,7 +13,8 @@ using ECOS: ECOS
                                   tol_bisect = 1.0e-9,
                                   tol_feasible = 1.0e-9,
                                   maxiters = 1000,
-                                  optimizer = ECOS.Optimizer)
+                                  optimizer = ECOS.Optimizer,
+                                  silent = true)
 
 Optimize the stability polynomial of an explicit Runge-Kutta method
 with a given `accuracy_order` and `number_of_stages` for a given
@@ -39,6 +40,8 @@ the algorithm of Ketcheson and Ahmadia (2012).
   Convex optimization solver to be used. You can choose a solver supporting
   SOCP from the list of supported solvers in the
   [JuMP documentation](https://jump.dev/JuMP.jl/stable/installation/#Supported-solvers).
+- `silent = true`:
+  Whether to suppress the output of the convex optimization solver.
 
 ## References
 
@@ -56,7 +59,8 @@ function optimize_stability_polynomial(accuracy_order,
                                        tol_bisect = 1.0e-9,
                                        tol_feasible = 1.0e-9,
                                        maxiters = 1000,
-                                       optimizer = ECOS.Optimizer)
+                                       optimizer = ECOS.Optimizer,
+                                       silent = true)
     # TODO:
     # - Allow other bases
     # - Allow function returning the spectrum for given dt
@@ -131,7 +135,7 @@ function optimize_stability_polynomial(accuracy_order,
             problem = minimize(maximum(abs(all_polynomial_evaluations)))
 
             # Solve the convex optimization problem
-            solve!(problem, optimizer; silent = true)
+            solve!(problem, optimizer; silent = silent)
             max_abs_polynomial_evaluations = problem.optval
         end
 
