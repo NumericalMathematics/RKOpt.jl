@@ -158,7 +158,7 @@ function optimize_stability_polynomial(accuracy_order,
 
     # Collect all polynomial coefficients after the optimization
     coefficients = ones(number_of_stages + 1)
-    if number_of_stages > accuracy_order + 1
+    if number_of_stages > accuracy_order
         free_coefficients_opt = evaluate(free_coefficients)
         for i in eachindex(free_coefficients_opt)
             coefficients[accuracy_order + 1 + i] = free_coefficients_opt[i]
