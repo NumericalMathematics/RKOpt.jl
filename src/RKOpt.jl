@@ -4,16 +4,43 @@ using Convex: MOI, Variable, evaluate, minimize, solve!
 using ECOS: Optimizer
 
 """
-    optimize_stability_polynomial
+    optimize_stability_polynomial(accuracy_order,
+                                  number_of_stages,
+                                  spectrum;
+                                  dt_min = 0.0,
+                                  dt_max = 2.01 * number_of_stages^2 *
+                                           maximum(abs, spectrum),
+                                  tol_bisect = 1.0e-9,
+                                  tol_feasible = 1.0e-9,
+                                  maxiters = 1000)
 
-TODO
+Optimize the stability polynomial of an explicit Runge-Kutta method
+with a given `accuracy_order` and `number_of_stages` for a given
+`spectrum` of eigenvalues (a vector of real or complex numbers) using
+the algorithm of Ketcheson and Ahmadia (2012).
+
+## Optional keyword arguments
+
+- `dt_min = 0.0`:
+  Minimum time step size for the bisection.
+- `dt_max = 2.01 * number_of_stages^2 * maximum(abs, spectrum)`:
+  Maximum time step size for the bisection.
+- `tol_bisect = 1.0e-9`:
+  Relative tolerance used to terminate the bisection.
+- `tol_feasible = 1.0e-9`:
+  Relative tolerance used to determine the feasibility of the optimization.
+  The problem is considered feasible if the maximal absolute value of the
+  stability polynomial is less than or equal to `1 + tol_feasible` at all
+  eigenvalues in the `spectrum`.
+- `maxiters = 1000`:
+  Maximum number of iterations for the bisection.
 
 ## References
 
 - Ketcheson and Ahmadia (2012)
-    Optimal stability polynomials for numerical integration of
-    initial value problems
-    [DOI: 10.2140/camcos.2012.7.247](https://doi.org/10.2140/camcos.2012.7.247)
+  Optimal stability polynomials for numerical integration of
+  initial value problems
+  [DOI: 10.2140/camcos.2012.7.247](https://doi.org/10.2140/camcos.2012.7.247)
 """
 function optimize_stability_polynomial(accuracy_order,
                                        number_of_stages,
