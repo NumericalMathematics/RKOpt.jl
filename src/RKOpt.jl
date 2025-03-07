@@ -101,14 +101,13 @@ function optimize_stability_polynomial(
 
             # Solve the convex optimization problem
             solve!(problem,
-                   MOI.OptimizerWithAttributes(Optimizer,
-                                               "feastol" => tol_feasible);
+                   MOI.OptimizerWithAttributes(Optimizer);
                                                silent = true)
             max_abs_polynomial_evaluations = problem.optval
         end
 
         # Update the time step size based on the optimization result
-        if max_abs_polynomial_evaluations <= 1
+        if max_abs_polynomial_evaluations <= 1 + tol_feasible
             dt_min = dt
         else
             dt_max = dt

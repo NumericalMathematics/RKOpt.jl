@@ -48,5 +48,27 @@ using RKOpt
                 @test isapprox(dt, number_of_stages - 1, rtol = 0.001)
             end
         end
+
+        @testset "disk monomial" begin
+            angle = range(0.0, 1.0 * π, length = 500)
+            spectrum = @. -1.0 + cos(angle) + im * sin(angle)
+            accuracy_order = 1
+            for number_of_stages in 1:9
+                dt, coefficients = @inferred optimize_stability_polynomial(
+                    accuracy_order, number_of_stages, spectrum)
+                if number_of_stages == 2
+                    @test_broken isapprox(dt, number_of_stages, rtol = 0.01)
+                else
+                    @test isapprox(dt, number_of_stages, rtol = 0.01)
+                end
+            end
+        end
+
+        @testset "error handling" begin
+            @test_throws ArgumentError optimize_stability_polynomial(
+                1, 1, [-1.0])
+            @test_throws ArgumentError optimize_stability_polynomial(
+                2, 1, [-1.0, -0.5, 0.0])
+        end
     end
 end
