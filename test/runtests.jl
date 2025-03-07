@@ -29,7 +29,8 @@ using RKOpt
             end
         end
 
-        @testset "real axis monomial" begin
+        @testset "negative real axis monomial" begin
+            # Section 4.1 of Ketcheson and Ahmadia (2012), page 259
             spectrum = range(-1.0, 0.0, length = 500)
             accuracy_order = 1
             for number_of_stages in 1:8
@@ -40,26 +41,63 @@ using RKOpt
         end
 
         @testset "imaginary axis monomial" begin
-            spectrum = im * range(-1.0, 1.0, length = 100)
-            accuracy_order = 1
-            for number_of_stages in 2:9
-                dt, coefficients = @inferred optimize_stability_polynomial(
-                    accuracy_order, number_of_stages, spectrum)
-                @test isapprox(dt, number_of_stages - 1, rtol = 0.001)
+            # Section 4.1 of Ketcheson and Ahmadia (2012), page 260
+            @testset "order 1" begin
+                spectrum = im * range(-1.0, 1.0, length = 100)
+                accuracy_order = 1
+                for number_of_stages in 2:9
+                    dt, coefficients = @inferred optimize_stability_polynomial(
+                        accuracy_order, number_of_stages, spectrum)
+                    @test isapprox(dt, number_of_stages - 1, rtol = 0.001)
+                end
+            end
+
+            @testset "order 2, odd number of stages" begin
+                spectrum = im * range(-1.0, 1.0, length = 100)
+                accuracy_order = 2
+                for number_of_stages in 3:2:9
+                    dt, coefficients = @inferred optimize_stability_polynomial(
+                        accuracy_order, number_of_stages, spectrum)
+                    @test isapprox(dt, number_of_stages - 1, rtol = 0.001)
+                end
+            end
+
+            @testset "order 2, even number of stages" begin
+                spectrum = im * range(-1.0, 1.0, length = 100)
+                accuracy_order = 2
+                for number_of_stages in 4:2:10
+                    dt, coefficients = @inferred optimize_stability_polynomial(
+                        accuracy_order, number_of_stages, spectrum)
+                    @test isapprox(dt, sqrt(number_of_stages * (number_of_stages - 2)), rtol = 0.001)
+                end
             end
         end
 
         @testset "disk monomial" begin
-            angle = range(0.0, 1.0 * π, length = 500)
-            spectrum = @. -1.0 + cos(angle) + im * sin(angle)
-            accuracy_order = 1
-            for number_of_stages in 1:9
-                dt, coefficients = @inferred optimize_stability_polynomial(
-                    accuracy_order, number_of_stages, spectrum)
-                if number_of_stages == 2
-                    @test_broken isapprox(dt, number_of_stages, rtol = 0.01)
-                else
-                    @test isapprox(dt, number_of_stages, rtol = 0.01)
+            # Section 4.1 of Ketcheson and Ahmadia (2012), page 262
+            @testset "order 1" begin
+                angle = range(0.0, 1.0 * π, length = 500)
+                spectrum = @. -1.0 + cos(angle) + im * sin(angle)
+                accuracy_order = 1
+                for number_of_stages in 1:9
+                    dt, coefficients = @inferred optimize_stability_polynomial(
+                        accuracy_order, number_of_stages, spectrum)
+                    if number_of_stages == 2
+                        @test_broken isapprox(dt, number_of_stages, rtol = 0.01)
+                    else
+                        @test isapprox(dt, number_of_stages, rtol = 0.01)
+                    end
+                end
+            end
+
+            @testset "order 2" begin
+                angle = range(0.0, 1.0 * π, length = 500)
+                spectrum = @. -1.0 + cos(angle) + im * sin(angle)
+                accuracy_order = 2
+                for number_of_stages in 2:9
+                    dt, coefficients = @inferred optimize_stability_polynomial(
+                        accuracy_order, number_of_stages, spectrum)
+                    @test isapprox(dt, number_of_stages - 1, rtol = 0.01)
                 end
             end
         end
