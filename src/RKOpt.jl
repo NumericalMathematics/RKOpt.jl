@@ -22,7 +22,7 @@ function optimize_stability_polynomial(
         spectrum;
         dt_min = 0.0,
         dt_max = 2.01 * number_of_stages^2 * maximum(abs, spectrum),
-        tol_bisect = 1.0e-3,
+        tol_bisect = 1.0e-9,
         tol_feasible = 1.0e-9,
         maxiters = 1000)
     # TODO:
@@ -33,6 +33,9 @@ function optimize_stability_polynomial(
     Base.require_one_based_indexing(spectrum)
     if length(spectrum) <= number_of_stages
         throw(ArgumentError("The number of eigenvalues in `spectrum` must be greater than the `number_of_stages`."))
+    end
+    if accuracy_order > number_of_stages
+        throw(ArgumentError("The `accuracy_order` must be less than or equal to the `number_of_stages`."))
     end
 
     # Pre-compute powers of the eigenvalues for efficiency
@@ -75,22 +78,37 @@ function optimize_stability_polynomial(
                 polynomial_evaluations[i] += normalized_powers_scaled[i, j]
             end
         end
-        ## Terms given by free coefficients
-        for j in (accuracy_order + 1):number_of_stages
-            for i in eachindex(spectrum)
-                polynomial_evaluations[i] += free_coefficients[j - accuracy_order] * normalized_powers_scaled[i, j]
-            end
-        end
-        problem = minimize(maximum(abs, polynomial_evaluations))
 
-        # Solve the convex optimization problem
-        solve!(problem,
-               MOI.OptimizerWithAttributes(Optimizer,
-                                           "feastol" => tol_feasible);
-                                           silent = true)
+        if number_of_stages == accuracy_order
+            # If there are no free coefficients, we do not need to perform
+            # the optimization but just compute the value
+            max_abs_polynomial_evaluations = maximum(abs, polynomial_evaluations)
+        else
+            # We need to solve the convex optimization problem
+
+            ## We cannot add the terms given by free coefficients in-place
+            ## since they have types coming from Convex.jl.
+            # for j in (accuracy_order + 1):number_of_stages
+            #     for i in eachindex(spectrum)
+            #         polynomial_evaluations[i] += free_coefficients[j - accuracy_order] * normalized_powers_scaled[i, j]
+            #     end
+            # end
+            all_polynomial_evaluations = polynomial_evaluations
+            for j in (accuracy_order + 1):number_of_stages
+                all_polynomial_evaluations += free_coefficients[j - accuracy_order] * normalized_powers_scaled[:, j]
+            end
+            problem = minimize(maximum(abs(all_polynomial_evaluations)))
+
+            # Solve the convex optimization problem
+            solve!(problem,
+                   MOI.OptimizerWithAttributes(Optimizer,
+                                               "feastol" => tol_feasible);
+                                               silent = true)
+            max_abs_polynomial_evaluations = problem.optval
+        end
 
         # Update the time step size based on the optimization result
-        if problem.optval < 1
+        if max_abs_polynomial_evaluations <= 1
             dt_min = dt
         else
             dt_max = dt
