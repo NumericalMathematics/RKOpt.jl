@@ -3,4 +3,5 @@
 **/run*/
 **/out*/
 **/Manifest.toml
+**/*.code-workspace
 docs/build/
