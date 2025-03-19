@@ -10,3 +10,4 @@ ECOS = "e2685f51-7e38-5353-a97d-a921fd2c8199"
 [compat]
 Convex = "0.16"
 ECOS = "1.1.2"
+julia = "1.10"
