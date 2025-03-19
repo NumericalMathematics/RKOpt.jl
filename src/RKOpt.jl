@@ -1,5 +1,7 @@
 module RKOpt
 
+using LinearAlgebra: eigvals
+
 using Convex: MOI, Variable, evaluate, minimize, solve!
 using ECOS: ECOS
 
@@ -175,6 +177,92 @@ function optimize_stability_polynomial(accuracy_order,
     return dt, coefficients
 end
 
+
+function step_size_control_stability(stability_polynomial_coefficients_main,
+                                     stability_polynomial_coefficients_embedded;
+                                     beta1 = 0.6,
+                                     beta2 = -0.2,
+                                     radius_min = 0.1,
+                                     radius_max = 2 * length(stability_polynomial_coefficients_main),
+                                     tol = 1.0e-12,
+                                     phi = range(π / 2, π, length = 200))
+    Base.require_one_based_indexing(stability_polynomial_coefficients_main,
+                                    stability_polynomial_coefficients_embedded)
+    if length(stability_polynomial_coefficients_main) != length(stability_polynomial_coefficients_embedded)
+        throw(DimensionMismatch("The lengths of the main and embedded stability polynomial coefficients must be the same."))
+    end
+
+    # R(z)
+    coeff_main = stability_polynomial_coefficients_main
+    # R'(z) z
+    deriv_main = [coeff_main[i] * (i - 1) for i in eachindex(coeff_main)]
+    # Rhat(z)
+    coeff_embd = stability_polynomial_coefficients_embedded
+    # E(z) = R(z) - Rhat(z)
+    coeff_diff = coeff_main - coeff_embd
+    # E'(z) z
+    deriv_diff = [coeff_diff[i] * (i - 1) for i in eachindex(coeff_diff)]
+
+    # Check order of accuracy of the stability polynomials
+    p_main = length(coeff_main) - 1
+    for i in eachindex(coeff_main)
+        if !(coeff_main[i] * factorial(i - 1) ≈ 1)
+            p_main = i - 2
+            break
+        end
+    end
+    p_embd = length(coeff_embd) - 1
+    for i in eachindex(coeff_embd)
+        if !(coeff_embd[i] * factorial(i - 1) ≈ 1)
+            p_embd = i - 2
+            break
+        end
+    end
+    @show p_main, p_embd
+
+    # Compute the boundary of the stability region
+    # for a given angle/direction in the complex plane
+    stability_polynomial(z) = evalpoly(z, coeff_main)
+    stability_function_squared(r, phi) = abs2(stability_polynomial(r * cis(phi)))
+    function compute_z(phi, r_min, r_max, tol)
+        while r_max - r_min > tol
+            r = (r_min + r_max) / 2
+            if stability_function_squared(r, phi) > 1
+                r_max = r
+            else
+                r_min = r
+            end
+        end
+        z = r_min * cis(phi)
+        return z
+    end
+
+    # Compute the spectral radius of the Jacobian matrix
+    # determining step size control stability for a PI controller
+    function spectral_radius(phi)
+        z = compute_z(phi, radius_min, radius_max, tol)
+        k = min(p_main, p_embd) + 1
+
+        # R(z): main stability polynomial
+        # u = Re( R'(z) * z / R(z))
+        u = real(evalpoly(z, deriv_main) / evalpoly(z, coeff_main))
+        # Rhat(z): embedded stability polynomial
+        # E(z) = R(z) - Rhat(z)
+        # v = Re( E'(z) * z / E(z))
+        v = real(evalpoly(z, deriv_diff) / evalpoly(z, coeff_diff))
+        jacobian = [1 u 0 0;
+                    (-beta1 / k) (1 - v * beta1 / k) (-beta2 / k) (-v * beta2 / k);
+                    1 0 0 0;
+                    0 1 0 0]
+        λ = eigvals(jacobian)
+        return maximum(abs, λ)
+    end
+
+    rad = map(spectral_radius, phi)
+    return phi, rad
+end
+
 export optimize_stability_polynomial
+export step_size_control_stability
 
 end # module RKOpt

@@ -488,4 +488,17 @@ const OPTIMIZERS = [
                                                                      [-1.0, -0.5, 0.0])
         end
     end
+
+    @testset "step_size_control_stability" begin
+        # BS3
+        coeff_main = [1, 1, 1 / 2, 1 / 6, 0]
+        coeff_embd = [1, 1, 1 / 2, 3 / 16, 1 / 48]
+        phi_ref = range(π / 2, π, length = 5)
+        rad_ref = [0.7994394467275345, 0.9677459749859763, 0.8021332677908201, 0.7829788340996575, 0.8029999395923118]
+        coeff_main = [1, 1, 1 / 2, 1 / 6, 0]
+        phi, rad = @inferred step_size_control_stability(coeff_main, coeff_embd;
+                                                         beta1 = 0.6, beta2 = -0.2, phi = phi_ref)
+        @test isapprox(phi, phi_ref)
+        @test isapprox(rad, rad_ref)
+    end
 end
