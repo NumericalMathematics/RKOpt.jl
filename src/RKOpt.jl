@@ -218,7 +218,6 @@ function step_size_control_stability(stability_polynomial_coefficients_main,
             break
         end
     end
-    @show p_main, p_embd
 
     # Compute the boundary of the stability region
     # for a given angle/direction in the complex plane
@@ -258,7 +257,8 @@ function step_size_control_stability(stability_polynomial_coefficients_main,
         return maximum(abs, λ)
     end
 
-    rad = map(spectral_radius, phi)
+    rad = similar(phi)
+    map!(spectral_radius, rad, phi)
     return phi, rad
 end
 
