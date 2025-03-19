@@ -46,14 +46,12 @@ jobs:
         env:
           GKSwstype: "100" # for Plots/GR
       - uses: julia-actions/julia-processcoverage@v1
-      # TODO: BEGIN ENABLE CODECOV
-      # - uses: codecov/codecov-action@v5
-      #   with:
-      #     files: lcov.info
-      #     fail_ci_if_error: true
-      #     verbose: true
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      # TODO: END ENABLE CODECOV
+      - uses: codecov/codecov-action@v5
+        with:
+          files: lcov.info
+          fail_ci_if_error: true
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
       # The standard setup of Coveralls is just annoying for parallel builds, see, e.g.,
       # https://github.com/trixi-framework/Trixi.jl/issues/691
       # https://github.com/coverallsapp/github-action/issues/47
@@ -114,12 +112,10 @@ jobs:
           coverage = merge_coverage_counts(coverage)
           @show covered_lines, total_lines = get_summary(coverage)
           LCOV.writefile("./lcov.info", coverage)
-      # TODO: BEGIN ENABLE COVERALLS
-      # - uses: coverallsapp/github-action@v2
-      #   with:
-      #     github-token: ${{ secrets.GITHUB_TOKEN }}
-      #     path-to-lcov: ./lcov.info
-      # TODO: END ENABLE COVERALLS
+      - uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ./lcov.info
       # Upload merged coverage data as artifact for debugging
       - uses: actions/upload-artifact@v4
         with:
