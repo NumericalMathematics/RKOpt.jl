@@ -5,5 +5,5 @@ LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 
 [compat]
 Documenter = "1"
-GLMakie = "0.11"
+GLMakie = "0.11, 0.12"
 LaTeXStrings = "1"
